@@ -45,7 +45,6 @@ https://github.com/user-attachments/assets/5a2bc248-02f1-4161-9eb0-4b6aaccd18da
 2. **Install the dependencies:**
     ```bash
    pip install .\requirements.txt           
-    ```bash
    npm install
    Start your local blockchain (if using Ganache) and ensure you have some test Ether.
 
@@ -56,5 +55,4 @@ https://github.com/user-attachments/assets/5a2bc248-02f1-4161-9eb0-4b6aaccd18da
    Run the application:
    
     ```bash
-   
    npm start
