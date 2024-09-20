@@ -18,7 +18,7 @@ Here are some screenshots of the application:
 
 Watch the demo of the NFT Provenance app:
 
-[View Demo Video](static/nft_poc_video.mp4)
+https://github.com/user-attachments/assets/5a2bc248-02f1-4161-9eb0-4b6aaccd18da
 
 ### Features
 
