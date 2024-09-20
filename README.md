@@ -18,12 +18,7 @@ Here are some screenshots of the application:
 
 Watch the demo of the NFT Provenance app:
 
-<div style="text-align: center; margin: auto;">
-  <video width="800" controls>
-    <source src="static/nft_poc_video.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-</div>
+[View Demo Video](static/nft_poc_video.mp4)
 
 ### Features
 
