@@ -1,25 +1,28 @@
 # NFT Provenance Demo App
 
 A decentralized application for creating and managing dataset NFTs.
-<img src="static/NFT_Provenance_App_arch.drawio.png" alt="Demo App" width="600"/>
+<img src="static/NFT_Provenance_App_arch.drawio.png" alt="Demo App" width="800" style="display: block; margin: auto;"/>
 
 ## Overview
 
 Here are some screenshots of the application:
 
-<div style="display: flex; justify-content: space-around;">
-  <img src="static/Screenshot1.png" alt="Screenshot 1" width="300"/>
-  <img src="static/Screenshot2.png" alt="Screenshot 2" width="300"/>
-  <img src="static/Screenshot3.png" alt="Screenshot 3" width="300"/>
+<div style="text-align: center;">
+  <img src="static/Screenshot1.png" alt="Screenshot 1" width="600" style="display: block; margin: auto;"/>
+  <img src="static/Screenshot2.png" alt="Screenshot 2" width="600" style="display: block; margin: auto;"/>
 </div>
+
+<img src="static/Screenshot3.png" alt="Screenshot 3" width="600" style="display: block; margin: auto;"/>
 
 ### Video Demo
 
 Watch the demo of the NFT Provenance app:
-<video width="600" controls>
-  <source src="static/nft_poc_video.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+<div style="text-align: center;">
+  <video width="800" controls>
+    <source src="static/nft_poc_video.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
 
 ### Features
 
