@@ -1,5 +1,5 @@
 NFT App
-<img src="static/logo-carre.png" alt="NFT App Logo" height="80px">
+
 A decentralized application for creating and managing NFTs.
 
 Features
@@ -42,7 +42,7 @@ Click "Mint" to create your NFT.
 Screenshots
 Here are some screenshots of the application:
 
-<img src="static/Banner-2-notext.jpg" alt="Banner Image" height="200px"> <img src="static/NFT_icon.svg" alt="NFT Icon" height="200px"> <img src="static/logo-carre-blanc.png" alt="Logo White" height="80px">
+
 Learn More
 For more information on how to develop smart contracts, check out the OpenZeppelin documentation.
 
