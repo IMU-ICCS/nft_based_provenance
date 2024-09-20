@@ -8,11 +8,11 @@ A decentralized application for creating and managing dataset NFTs.
 Here are some screenshots of the application:
 
 <div style="text-align: center;">
-  <img src="static/Screenshot1.png" alt="Screenshot 1" width="600" style="display: block; margin: auto;"/>
-  <img src="static/Screenshot2.png" alt="Screenshot 2" width="600" style="display: block; margin: auto;"/>
+  <img src="static/Screenshot1.png" alt="Screenshot 1" width="800" style="display: block; margin: auto;"/>
+  <img src="static/Screenshot2.png" alt="Screenshot 2" width="800" style="display: block; margin: auto;"/>
 </div>
 
-<img src="static/Screenshot3.png" alt="Screenshot 3" width="600" style="display: block; margin: auto;"/>
+<img src="static/Screenshot3.png" alt="Screenshot 3" width="800" style="display: block; margin: auto;"/>
 
 ### Video Demo
 
