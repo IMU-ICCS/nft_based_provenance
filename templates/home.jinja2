@@ -1,0 +1,1262 @@
+{% extends "base.jinja2" %}
+{% block styles %}
+ 
+<head>
+    <title>Dataset NFT Interaction</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <link rel="stylesheet" href="https://use.typekit.net/sus7rlu.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap5.css">
+    <!--<script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>-->
+    <style>
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Adjust card width and number of columns as needed */
+        gap: 25px; /* Adjust the gap between cards */
+        max-height: 660px; /* Set the maximum height as needed */
+        overflow-y: auto; /* Add a vertical scrollbar when content overflows */
+        padding: 20px; /* Add padding to the grid container */
+      }
+      
+
+      .card {
+        /* Add your card styles here */
+        /* Example styles: */
+        border: 1px solid #053ca1;
+        border-radius: 5px;
+        padding: 5px;
+        box-shadow: 0px 2px 4px rgba(43, 3, 66, 0.3);
+        /* Add width: 100% to make cards take full width */
+        width: 100%;
+      }
+      
+      .transparent-alert {
+          background-color: rgba(255, 255, 0, 0.15); /* Slightly yellow background with 15% opacity */
+          border-color: rgba(37, 148, 27, 0.5); /* Match the border color to the background color */
+          color: black; /* Text color for contrast */
+          font-family: sans-serif;
+      }
+
+      .transparent-success {
+          background-color: rgba(60, 255, 0, 0.15); /* Slightly green background with 15% opacity */
+          border-color: rgba(146, 148, 27, 0.5); /* Match the border color to the background color */
+          color: black; /* Text color for contrast */
+          font-family: sans-serif;
+
+      }
+
+      .transparent-danger {
+          background-color: rgba(255, 38, 0, 0.15); /* Slightly red background with 15% opacity */
+          border-color: rgba(148, 27, 27, 0.5); /* Match the border color to the background color */
+          color: black; /* Text color for contrast */
+          font-family: sans-serif;
+      }
+
+      .fade-update {
+          opacity: 0;
+          color: royalblue;
+          font-weight: bold;
+          transition: opacity 2.0s ease-in-out;
+
+      }
+
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.js"></script>
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", function () {
+        const eventContainer = document.getElementById("eventContainer");
+        const evaluatorActivatedCheckbox = document.getElementById("evaluatorActivated");
+        const evaluatorDeactivatedCheckbox = document.getElementById("evaluatorDeactivated");
+        const datasetAddedCheckbox = document.getElementById("datasetAdded");
+        const datasetNotNullsCheckbox = document.getElementById("datasetNotNullsEvaluated");
+        const datasetRowsCheckbox = document.getElementById("datasetRowsEvaluated");
+        const datasetScore1Checkbox =document.getElementById("datasetScore1Evaluated");
+        const NFTMintedCheckbox =document.getElementById("NFTMinted");
+        
+
+        var socket = io.connect('http://' + document.domain + ':' + location.port );
+
+        socket.on('evaluator_activated', function (data) {
+            console.log('Received Evaluator Activated Event:', data);
+            if (evaluatorActivatedCheckbox.checked) {
+              displayEvent('Evaluator Activated', data);
+            }
+            // Update the DOM or perform other actions as needed
+        });
+        socket.on('evaluator_deactivated', function (data) {
+            console.log('Received Evaluator Deactivated Event:', data);
+            if (evaluatorDeactivatedCheckbox.checked) {
+              displayEvent('Evaluator Deactivated', data);
+            }
+            // Update the DOM or perform other actions as needed
+        });
+        socket.on('dataset_added', function (data) {
+            console.log('New Dataset Added: ', data);
+            if (datasetAddedCheckbox.checked) {
+              displayEvent('Dataset Added', data);
+            }
+            // Update the DOM or perform other actions as needed
+        });
+        socket.on('not_null_set', function (data) {
+            console.log('Not-nulls Set:', data.datasetId);
+            if (datasetNotNullsCheckbox.checked) {
+              displayEvent('Not-nulls Set', data);
+            }
+            // Update the DOM or perform other actions as needed
+            const datasetId = data.datasetId; // Replace with the desired dataset ID
+            const cardToUpdate = document.getElementById(datasetId);
+            let statusMessage = `Status: `;
+            statusMessage += `Evaluated (1 / 3)`;
+
+            if (cardToUpdate) {
+                const notNullsElement = cardToUpdate.querySelector('#not_nulls');
+                // Update the card's content or perform other actions
+                notNullsElement.classList.add('fade-update');
+
+                // Update the content (you can set the new value received from the event)
+                notNullsElement.innerHTML = "not_nulls: " +"<b>"+data.new_value +"</b>"+ "<br>" +"</i>"+ data.evaluatorAddress +"</i>";
+                const statusElement = cardToUpdate.querySelector('#status_message');
+                // Update the card's content or perform other actions
+                statusElement.classList.add('fade-update');
+
+                // Update the content (you can set the new value received from the event)
+                statusElement.innerHTML = '<span style="display: inline;"><em>'+statusMessage+'</em><img src="{{ url_for('static', filename='NFT_icon.svg') }}" width="60"/></span>';
+                        // Add a button for minting NFT (if ready)
+
+                // After a short delay (0.3 seconds, matching the CSS transition duration), remove the fade-update class
+                setTimeout(function () {
+                    notNullsElement.classList.remove('fade-update');
+                    statusElement.classList.remove('fade-update');
+                }, 2000);
+            }         
+        });
+        socket.on('score1_set', function (data) {
+            console.log('Score Set Event:', data);
+            if (datasetScore1Checkbox.checked) {
+              displayEvent('Score1 Set', data);
+            }
+            const datasetId = data.datasetId; // Replace with the desired dataset ID
+            const cardToUpdate = document.getElementById(datasetId);
+            let statusMessage = `Status: `;
+            statusMessage += `Evaluated`;
+            let isReadyToMint = true;
+            if (cardToUpdate) {
+                const scoreElement = cardToUpdate.querySelector('#score1');
+                // Update the card's content or perform other actions
+                scoreElement.classList.add('fade-update');
+
+                // Update the content (you can set the new value received from the event)
+                scoreElement.innerHTML = "Score: " +"<b>"+data.new_value +"</b>"+ "<br>" + "<i>"+data.evaluatorAddress+"</i>";
+                const statusElement = cardToUpdate.querySelector('#status_message');
+                // Update the card's content or perform other actions
+                statusElement.classList.add('fade-update');
+
+                // Update the content (you can set the new value received from the event)
+                statusElement.innerHTML = '<span style="display: inline;"><em>'+statusMessage+'</em></span>';
+                        // Add a button for minting NFT (if ready)
+                if (isReadyToMint) {
+                  const mintButton = document.createElement("button");
+                  mintButton.innerText = "Mint NFT";
+                  mintButton.className = "btn btn-outline-primary btn-sm mt-2";
+                  mintButton.addEventListener("click", () => mintNFTForDataset(datasetId)); // Call your minting function
+                  cardToUpdate.appendChild(mintButton);
+                }
+                // After a short delay (0.3 seconds, matching the CSS transition duration), remove the fade-update class
+                setTimeout(function () {
+                    scoreElement.classList.remove('fade-update');
+                    statusElement.classList.remove('fade-update');
+
+                }, 2000);
+            }         
+            // Update the DOM or perform other actions as needed
+        });
+        socket.on('rows_set', function (data) {
+            console.log('Rows Set Event:', data);
+            if (datasetRowsCheckbox.checked) {
+              displayEvent('Rows Set', data);
+            }
+            const datasetId = data.datasetId; 
+            const cardToUpdate = document.getElementById(datasetId);
+              // Status: Evaluated (number of non-zero addresses) / 3
+            let statusMessage = `Status: Evaluated (2 / 3)`;
+       
+            if (cardToUpdate) {
+                const rowsElement = cardToUpdate.querySelector('#rows');
+                // Update the card's content or perform other actions
+                rowsElement.classList.add('fade-update');
+
+                // Update the content (you can set the new value received from the event)
+                rowsElement.innerHTML = "rows: " +"<b>"+data.new_value +"</b>"+ "<br>" + "<i>"+data.evaluatorAddress +"</i>";
+
+                const statusElement = cardToUpdate.querySelector('#status_message');
+                // Update the card's content or perform other actions
+                statusElement.classList.add('fade-update');
+
+                // Update the content (you can set the new value received from the event)
+                statusElement.innerHTML = '<span style="display: inline;"><em>'+statusMessage+'</em></span>';
+                        // Add a button for minting NFT (if ready)
+
+        
+              // After a short delay (2000 miliseconds, matching the CSS transition duration), remove the fade-update class
+              setTimeout(function () {
+                  rowsElement.classList.remove('fade-update');
+                  statusElement.classList.remove('fade-update');
+
+              }, 2000);
+          }         
+            // Update the DOM or perform other actions as needed
+        });
+        socket.on('nft_minted', function (data) {
+            console.log('NFT Minted Event:', data);
+            if (NFTMintedCheckbox.checked) {
+              displayEvent('NFT Minted', data);
+            }
+            // Update the DOM or perform other actions as needed
+            const datasetId = data.datasetId; 
+            const cardToUpdate = document.getElementById(datasetId);
+            let statusMessage = `Status: `;
+            statusMessage += `Evaluated, NFT Minted`;           
+            if (cardToUpdate) {
+                const statusElement = cardToUpdate.querySelector('#status_message');
+                // Update the card's content or perform other actions
+                statusElement.classList.add('fade-update');
+
+                // Update the content (you can set the new value received from the event)
+                statusElement.innerHTML = '<span style="display: inline;"><em>'+statusMessage+'</em><img src="{{ url_for('static', filename='NFT_icon.svg') }}" width="60"/></span>';
+
+                // After a short delay (0.3 seconds, matching the CSS transition duration), remove the fade-update class
+                setTimeout(function () {
+                    statusElement.classList.remove('fade-update');
+                    statusElement.classList.remove('fade-update');
+                }, 2000);
+            }         
+        });
+
+
+      function displayEvent(category, data) {
+        const eventElement = document.createElement("div");
+        eventElement.classList.add("alert", "mb-2");
+        eventElement.style.backgroundColor = "rgba(173, 216, 230, 0.30)"; // Adjust the RGB values and alpha (0.6) as needed
+
+        msgHTML = `<strong>${category}</strong><br>`;
+        // Loop through the JSON object's attributes
+        for (const key in data) {
+          const attributeValue = data[key];
+          // Create an HTML element for each attributey
+          if (key==='evaluatorAddress' || key==='uploader'){
+            msgHTML += `<em>By : </em> <i>${attributeValue}</i><br>`;
+          }else if (key==='datasetId'){
+            msgHTML += `<em>Id : </em> ${attributeValue}<br>`;
+          }else if (key==='new_value'){
+            msgHTML += `<em>Value : </em> <b>${attributeValue}</b><br>`;
+          }else{
+            msgHTML += `<em>${key}:</em> ${attributeValue}<br>`;
+          }
+          
+          // Append the HTML element to the container
+        }
+        eventElement.innerHTML=msgHTML;
+        eventContainer.appendChild(eventElement);
+        eventContainer.scrollTop = eventContainer.scrollHeight;
+      }
+    });   
+    </script>
+
+
+
+
+
+</head>
+
+{% endblock %}
+{% block content %}
+
+  <div id="message-container" ></div>
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col-md">
+        <h5 class="d-flex justify-content-between">Smart Contract Info
+        <a href="#" class="text-decoration-none ms-auto" data-bs-toggle="collapse" data-bs-target="#SmartContractInfo">
+          <span id="collapsedInfo" class="d-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-down-square" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 2.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"></path>
+            </svg>
+          </span>
+          <span id="expandedInfo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-up-square" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 9.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z"></path>
+            </svg>
+          </span>
+        </a>
+        </h5>
+        <hr>
+        <div id="SmartContractInfo" class="collapse show">
+          <b>Contract Address : </b> {{ contract_address }}
+            <br>
+            <b>Deployer Address : </b><p id="chairman" style="display:inline"></p><a href="/#">
+                <br><button id='isChairman' class="btn btn-outline-secondary btn-sm me-0" onclick="GetDeployer()">Get Deployer</button></a>
+          <br>
+          <h5 class="mt-3">Evaluators</h5>
+          <hr>
+          <table class="table table-bordered table-transparent">
+            <thead>
+                <tr>
+                    <th>Attribute Index</th>
+                    <th>Evaluator Address</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="evaluatorsTableBody">
+                <!-- Table rows will be added here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md">
+        <h5 class="d-flex justify-content-between">Event Viewer
+        <a href="#" class="text-decoration-none ms-auto" data-bs-toggle="collapse" data-bs-target="#eventViewer">
+          <span id="collapsedEvents" class="d-none">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-down-square" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 2.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"></path>
+            </svg>
+          </span>
+          <span id="expandedEvents">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-up-square" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V2zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.5 9.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z"></path>
+            </svg>
+          </span>
+        </a>
+        </h5>
+        <hr>
+        <div id="eventViewer" class="collapse show">
+          <a href="#" class="text-decoration-none" data-bs-toggle="collapse" data-bs-target="#categoryFilters">
+            <span id="collapsedFilters"><em>Show Event Filters </em>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V4.5z"></path>
+              </svg>
+            </span>
+            <span id="expandedFilters" class="d-none"><em>Hide Event Filters </em>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-circle" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z"></path>
+              </svg>
+            </span>
+          </a>
+          <br>
+          <div id="categoryFilters" class="collapse">
+            <!-- Category Filters -->
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="evaluatorActivated" checked>
+              <label class="form-check-label" for="evaluatorActivated">
+                Evaluator Activated
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="evaluatorDeactivated" checked>
+              <label class="form-check-label" for="evaluatorDeactivated">
+                Evaluator Deactivated
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="datasetAdded" checked>
+              <label class="form-check-label" for="datasetAdded">
+                Dataset Added
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="datasetNotNullsEvaluated" checked>
+              <label class="form-check-label" for="datasetNotNullsEvaluated">
+                Dataset Not Null Evaluated
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="datasetRowsEvaluated" checked>
+              <label class="form-check-label" for="datasetRowsEvaluated">
+                Dataset Rows Evaluated
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="datasetScore1Evaluated" checked>
+              <label class="form-check-label" for="datasetScore1Evaluated">
+                Dataset Score Evaluated
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="NFTMinted" checked>
+              <label class="form-check-label" for="NFTMinted">
+                NFT minted
+              </label>
+            </div>
+          </div>
+          <!-- Event Container -->
+          <div id="eventContainer" class="mt-3" style="overflow: auto; max-height: 330px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <br>
+  <div class="container">
+    <div class="row mt-3">
+      <div class="col-sm-4 p-3 mb-5 bg-transparent bg-opacity-50 rounded">
+        <div class="text-center"><h5>Add Evaluator</h5></div>
+        <hr>
+        <form method="POST" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+          
+            {{ form.evaluatorAddress.label (class="form-label") }} 
+            {{ form.evaluatorAddress (class="form-control bg-transparent")}}
+
+            {{ form.attributeIndex.label (class="form-label") }}
+            {{ form.attributeIndex (class="form-control bg-transparent") }}
+            
+        </form>
+        <div class="text-center">
+            <input type="submit" class="btn btn-outline-success btn-sm mt-2 " onclick="addEvaluator()" value="Add Evaluator">
+        </div>    
+      </div>
+
+      <div class="col-sm-4 p-3 mb-5 bg-transparent bg-opacity-50 rounded">
+        <div class="text-center"><h5>Evaluate Dataset</h5></div>
+        <hr>
+        <form id="form1" method="POST" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+          
+            {{ form1.dataset_id.label (class="form-label") }} 
+            {{ form1.dataset_id (class="form-control bg-transparent")}}
+      
+            {{ form1.attribute_id.label (class="form-label")}} 
+            {{ form1.attribute_id (class="form-control bg-transparent")}}
+
+            {{ form1.score.label (class="form-label") }}
+            {{ form1.score (class="form-control bg-transparent") }}
+
+        </form>
+        <div class="text-center">
+            <input type="submit" class="btn btn-outline-warning btn-sm mt-2 " onclick="setScore1()" value="Evaluate Dataset">
+        </div>    
+      </div>
+
+      <div class="col-sm-4 p-3 mb-5 bg-transparent bg-opacity-50 rounded">
+        <div class="text-center"><h5>Add Dataset</h5></div>
+        <hr>
+        <form id="form2" method="POST" enctype="multipart/form-data">
+          
+          {{ form2.file.label (class="form-label") }}
+          {{ form2.file (class="form-control bg-transparent") }}
+          
+        </form>
+        <div class="text-center">
+            <input type="submit" class="btn btn-outline-primary btn-sm mt-2 " onclick="addNewDataset(form2.file)" value="Add Dataset">
+        </div>    
+      </div>
+    </div>
+  </div>
+  <h5>All Datasets</h5>
+  <hr>
+  <div class="card-grid" id="dataset-grid"></div>
+  <h5>My Datasets</h5>
+  <hr>
+  <div  class="card-grid" id="my-dataset-grid"></div>
+  
+
+
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.5.0/dist/web3.min.js"></script>
+
+{% endblock %}
+{% block scripts %}
+
+
+
+<script type="text/javascript">
+  var jsonInterface=jsonInterface;
+  var contract_address={{contract_address|tojson}} ;
+  var abi={{abi|tojson}} ;
+  var messageContainer = document.getElementById("message-container");
+  console.log(abi);
+  window.userWalletAddress = null
+  const connectWallet = document.getElementById('connectWallet')
+  const walletAddress = document.getElementById('walletAddress')
+  const walletBalance = document.getElementById('walletBalance')
+  const role=document.getElementById('role')
+  const chairman=document.getElementById('chairman')
+  
+  const categoryFilters = document.getElementById("categoryFilters");
+  const collapsedFilters = document.getElementById("collapsedFilters");
+  const expandedFilters = document.getElementById("expandedFilters");
+
+  categoryFilters.addEventListener("show.bs.collapse", function () {
+    collapsedFilters.classList.add("d-none");
+    expandedFilters.classList.remove("d-none");
+  });
+
+  categoryFilters.addEventListener("hide.bs.collapse", function () {
+    collapsedFilters.classList.remove("d-none");
+    expandedFilters.classList.add("d-none");
+  });
+
+
+  const eventViewer = document.getElementById("eventViewer");
+  const collapsedEvents = document.getElementById("collapsedEvents");
+  const expandedEvents = document.getElementById("expandedEvents");
+
+  eventViewer.addEventListener("show.bs.collapse", function () {
+    collapsedEvents.classList.add("d-none");
+    expandedEvents.classList.remove("d-none");
+  });
+
+  eventViewer.addEventListener("hide.bs.collapse", function () {
+    collapsedEvents.classList.remove("d-none");
+    expandedEvents.classList.add("d-none");
+  });
+
+
+  const SmartContractInfo = document.getElementById("SmartContractInfo");
+  const collapsedInfo = document.getElementById("collapsedInfo");
+  const expandedInfo = document.getElementById("expandedInfo");
+
+  SmartContractInfo.addEventListener("show.bs.collapse", function () {
+    collapsedInfo.classList.add("d-none");
+    expandedInfo.classList.remove("d-none");
+  });
+
+  SmartContractInfo.addEventListener("hide.bs.collapse", function () {
+    collapsedInfo.classList.remove("d-none");
+    expandedInfo.classList.add("d-none");
+  });
+
+
+
+  
+  function checkInstalled() {
+    if (typeof window.ethereum == 'undefined') {
+      connectWallet.innerText = 'MetaMask isnt installed, please install it'
+      connectWallet.classList.remove()
+      connectWallet.classList.add()
+      return false
+    }
+    connectWallet.addEventListener('click', connectWalletwithMetaMask)
+  }
+
+
+  async function connectWalletwithMetaMask() {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    .catch((e) => {
+    console.error(e.message)
+    return
+    })
+
+    if (!accounts) { return }
+
+    window.userWalletAddress = accounts[0]
+    walletAddress.innerText = window.userWalletAddress
+    
+    checkBalance();
+    
+    connectWallet.innerText = 'Sign Out'
+    connectWallet.removeEventListener('click', connectWalletwithMetaMask)
+    setTimeout(() => {
+      connectWallet.addEventListener('click', signOutOfMetaMask);
+    }, 200)
+    displayDatasetsByUploader(accounts[0]);
+    populateEvaluatorsTable();
+    getAllDatasets();
+    getMintedNFTs();
+  }
+
+
+  async function checkBalance() {
+    let balance = await window.ethereum.request({ method: "eth_getBalance", params: [window.userWalletAddress,'latest']}).catch((err)=> {
+      console.log(err)
+    })
+    console.log(parseFloat((balance) / Math.pow(10,18)))
+    walletBalance.innerHTML = parseFloat((balance) / Math.pow(10,18))
+  }
+  window.addEventListener('DOMContentLoaded', () => {
+    checkInstalled()
+  })
+
+  
+  function signOutOfMetaMask() {
+    window.userwalletAddress = null
+    walletAddress.innerText = ''
+    connectWallet.innerText = 'Connect Wallet'
+    walletBalance.innerText=''
+    role.innerText=''
+
+    connectWallet.removeEventListener('click', signOutOfMetaMask)
+    setTimeout(() => {
+      connectWallet.addEventListener('click', connectWalletwithMetaMask)
+    }, 200  )
+  }
+  
+
+  async function isChairman() {
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      if (!accounts) {
+        console.error('No accounts found');
+        return false;
+      }
+      const connectedAccount = accounts[0];
+      
+      // Get the chairperson's address from the smart contract
+      const chairpersonAddress = await contract.methods.chairperson().call();
+      
+      // Compare the connected account with the chairperson's address
+      return connectedAccount.toLowerCase() === chairpersonAddress.toLowerCase();
+    } catch (error) {
+      console.error('Error checking chairman status:', error);
+      return false;
+    }
+  }
+
+  
+  // Create Web3 instance  
+  // set provider for all later instances to use
+  const web3 = new Web3("http://127.0.0.1:7545") 
+  const contract = new web3.eth.Contract(abi, contract_address);
+
+
+  async function GetDeployer() {
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }).catch((e) => {
+      console.error(e.message)
+        return
+    });
+    if (accounts){
+      console.log(accounts[0]);
+      var d;
+      contract.methods.getChairPerson().call().then(function(value){
+        d=value;
+        console.log(d);
+        chairman.innerText=d;
+      }).catch(error=>{
+        alert(error)
+      });
+    };
+  };
+
+
+  async function populateEvaluatorsTable() {
+    try {
+      const evaluators = await contract.methods.getAllEvaluators().call();
+      console.log('Evaluators:', evaluators);
+      const tableBody = document.getElementById('evaluatorsTableBody');
+      tableBody.innerHTML = '';
+      const isChair = await isChairman();
+      
+      evaluators.forEach((evaluator) => {
+        const row = tableBody.insertRow();
+        const attributeIndexCell = row.insertCell(0);
+        const evaluatorAddressCell = row.insertCell(1);
+        const isActiveCell = row.insertCell(2);
+        const actionCell = row.insertCell(3);
+        
+        attributeIndexCell.innerHTML = evaluator.attributeIndex;
+        evaluatorAddressCell.innerHTML = evaluator.evaluatorAddress;
+        isActiveCell.innerHTML = evaluator.is_active ? 'Active' : 'Inactive';
+        
+        if (isChair) {
+          const actionButton = document.createElement('button');
+          console.log('check ' +evaluator);
+          let addr;
+          addr=evaluator.evaluatorAddress;
+          console.log('addr '+addr);
+          if (!evaluator.is_active ) {
+            actionButton.classList.add('me-2', 'btn', 'btn-outline-success', 'btn-sm');
+            actionButton.innerText = ' Activate ';
+            actionButton.addEventListener('click', (function (address) {
+              return function () {
+                activateEvaluator(address);
+              };
+            })(addr));
+          } else {
+            actionButton.innerText = 'Deactivate';
+            actionButton.classList.add('me-2', 'btn', 'btn-outline-danger', 'btn-sm');
+            actionButton.addEventListener('click', (function (address) {
+              return function () {
+                deactivateEvaluator(address);
+              };
+            })(addr));
+          }
+          actionCell.appendChild(actionButton);
+        } else {
+          actionCell.innerHTML = '-';
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching evaluators:', error);
+    }
+  };
+
+
+  async function addEvaluator() {
+    const evaluatorAddress = document.getElementById("evaluatorAddress").value;
+    const attributeIndex = parseInt(document.getElementById("attributeIndex").value);
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' }).catch((e) => {
+      console.error(e.message);
+        return
+    });
+    try {
+        // Call the contract's addEvaluator function
+        await contract.methods.addEvaluator(attributeIndex, evaluatorAddress).send({ from: window.userWalletAddress, gas: 2000000 }); // Increase the gas limit as needed
+        // Evaluator added successfully
+        console.log(evaluatorAddress);
+        messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-success" role="alert">' + 'Evaluator '+evaluatorAddress+' for attribute '+attributeIndex+' added successfully!' + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+        populateEvaluatorsTable();
+    } catch (error) {
+        console.error("Error adding evaluator:", error);
+        messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-danger" role="alert">' + 'Error adding evaluator: ' + error.message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+
+    }
+  }
+
+
+  // Function to add a new dataset
+  async function addNewDataset(file) {
+    try {
+      // Check if the user is connected to MetaMask
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      .catch((e) => {
+      console.error(e.message)
+      return
+      })
+        // Send the transaction to add a new dataset
+      const transaction = await contract.methods.addDataset().send({ from: window.userWalletAddress });
+
+
+      // Wait for the transaction receipt using a Promise
+      await new Promise((resolve, reject) => {
+        const interval = setInterval(async () => {
+            try {
+                const receipt = await web3.eth.getTransactionReceipt(transaction.transactionHash);
+                if (receipt) {
+                    clearInterval(interval); // Stop polling
+                    resolve(receipt);
+                    console.log(receipt);
+                    
+                    if (receipt && receipt.status === true) {
+                      // Transaction was successful and has a receipt
+
+                      // Use the contract instance to get past events
+                      contract.getPastEvents('DatasetAdded', {
+                        fromBlock: receipt.blockNumber, // Start block (optional)
+                        toBlock: receipt.blockNumber,   // End block (optional)
+                        filter: {},                     // Event filter (optional)
+                      })
+                      .then(function(events)  {
+                        // `events` will contain an array of event objects
+                        events.forEach(function(event) {
+                          console.log('Event:', event);
+                          const datasetId = event.returnValues.datasetId;
+                          const uploader = event.returnValues.uploader;
+
+                          console.log("Dataset ID:", datasetId);
+                          console.log("Uploader:", uploader);
+
+                          });
+                      })
+                      .catch(error => {
+                        console.error('Error getting events:', error);
+                      });
+                    } else {
+                      console.error('Transaction failed or receipt not found.');
+                    }
+
+                    
+                }
+            } catch (error) {
+                clearInterval(interval); // Stop polling
+                reject(error);
+            }
+        }, 1000); // Poll every 1 second
+      });
+
+      // Transaction successful
+      messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-success" role="alert">' + 'Dataset from account '+accounts[0] +' added successfully!' + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+
+      displayDatasetsByUploader(accounts[0]);
+      getAllDatasets();
+    } catch (error) {
+        console.error('Error adding a new dataset:', error);
+        messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-danger" role="alert">' + 'Error adding a new dataset: ' + error.message+ '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+    }
+  }
+  // Add an event listener to trigger the function when the form is submitted
+  document.getElementById('form2').addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent the default form submission
+    const fileInput = document.getElementById('file');
+    const file1 = fileInput.files[0];
+
+    if (!file1) {
+        messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-alert" role="alert">' + 'Please select a file to upload.'+'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+        return;
+    }
+
+    // Call the function to add a new dataset
+    addNewDataset(file1);
+    checkBalance();
+  });
+
+  
+  async function displayDatasetsByUploader(uploaderAddress) {
+    try {
+
+      const datasetCount = await contract.methods.datasetCount().call();
+
+      // Initialize the grid container
+      const myGridContainer = document.getElementById("my-dataset-grid");
+      myGridContainer.innerHTML = "";
+      const datasets = await contract.methods.getDatasetsByUploader(uploaderAddress).call();
+
+      if (!datasets || datasets.length === 0) {
+          // Update the message container with the received message
+          var message='No datasets found for this uploader.'
+          messageContainer.innerHTML = '<div class="alert alert-warning alert-dismissible fade show transparent-alert" role="alert">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+  
+          return;
+      }
+      let i = 0;
+      // Iterate through and display datasets
+      datasets.forEach((dataset) => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.classList.add('card','col-4', 'card-grid', 'bg-transparent')
+        const evaluators = dataset.evaluatorAddresses ? dataset.evaluatorAddresses.join(", ") : "N/A";
+        let evaluationInfo = `<p><b>Evaluation:</b></p>`;
+        evaluationInfo += `<p>${dataset.evaluation.rows} rows</p>`;
+        evaluationInfo += `<p>not_nulls: ${dataset.evaluation.not_nulls}</p>`;
+        evaluationInfo += `<p>Score1: ${dataset.evaluation.score1}</p>`;
+
+        // Populate the card with Dataset data
+        card.innerHTML = `
+            <em><b>Dataset Id: </b>${i}</em>
+            <em><b>Uploader: </b>${dataset.uploader}</em>
+            ${evaluationInfo}
+            <p><b>Evaluators: </b>${evaluators}</p>
+        `;
+        
+        // Append the card to the grid container
+        myGridContainer.appendChild(card);
+        // Display dataset information here
+        console.log('Uploader:', dataset.uploader);
+        console.log('Evaluation:', dataset.evaluation);
+        console.log('Evaluators:', dataset.evaluatorAddresses.join(", "));
+        console.log('------------------------');
+        i++;
+      });
+
+    } catch (error) {
+        console.error("Error fetching and displaying datasets:", error);
+    }
+  };
+
+  async function getMintedNFTs() {
+    try {
+      const totalSupply = await contract.methods.totalSupply().call();
+
+      const nftIds = [];
+      for (let i = 0; i < totalSupply; i++) {
+        const tokenId = await contract.methods.tokenByIndex(i).call();
+        nftIds.push(tokenId);
+      }
+
+      console.log('Minted NFT IDs:', nftIds);
+    } catch (error) {
+      console.error('Error getting minted NFTs:', error);
+    }
+  }
+
+
+  async function getAllDatasets() {
+    const gridContainer = document.getElementById("dataset-grid");
+    gridContainer.innerHTML = "";
+
+
+    
+    try {
+      
+      const datasetCount = await contract.methods.datasetCount().call();
+      const totalSupply = await contract.methods.totalSupply().call();
+      for (let i = 0; i < datasetCount; i++) {
+        const dataset = await contract.methods.datasets(i).call();
+        const evaluatorAddresses = await contract.methods.getEvaluatorAddresses(i).call();
+        console.log(dataset);
+        
+        const card = document.createElement("div");
+        card.className = "card";
+        card.classList.add('card','col-4', 'card-grid', 'bg-transparent');
+        card.id = i;
+        // Check if dataset.evaluatorAddresses is defined, and if so, join its elements
+        let evaluationInfo = `<p><b>Evaluation:</b></p>`;
+        evaluationInfo1 = `<p id="not_nulls">not_nulls: - </p>`;
+        evaluationInfo2 = `<p id="rows">rows: - </p>`;
+        evaluationInfo3 = `<p id="score1">Score1: - </p>`;
+        for (const evaluatorAddress of evaluatorAddresses) {
+          const evaluatorId = await contract.methods.evaluatorIndexByAddress(evaluatorAddress).call();
+          const evaluator = await contract.methods.evaluators(evaluatorId).call();
+          if (evaluatorAddress !== "0x0000000000000000000000000000000000000000"){
+            const attributeIndex = evaluator.attributeIndex;
+            if (attributeIndex == 0) {
+              evaluationInfo1 = `<p id="not_nulls">not_nulls: <b>${dataset.evaluation.not_nulls}</b><br>${evaluatorAddress}</p>`;
+            } else if (attributeIndex == 1) {
+              evaluationInfo2 = `<p id="rows">rows: <b>${dataset.evaluation.rows}</b><br>${evaluatorAddress}</p>`;
+            } else if (attributeIndex == 2) {
+              evaluationInfo3 = `<p id="score1">Score1: <b>${dataset.evaluation.score1}</b><br>${evaluatorAddress}</p>`;
+            }
+          }
+        }
+        
+        let statusMessage = "Status: ";
+        let isReadyToMint = false;
+
+        // Count non-zero addresses
+        const nonZeroAddresses = evaluatorAddresses.filter((address) => address !== "0x0000000000000000000000000000000000000000");
+        
+        if (nonZeroAddresses.length === 0) {
+          // Status: Uploaded
+          statusMessage += "Uploaded";
+        } else if (nonZeroAddresses.length >= 1 && nonZeroAddresses.length <= 2) {
+          // Status: Evaluated (number of non-zero addresses) / 3
+          statusMessage += `Evaluated (${nonZeroAddresses.length} / 3)`;
+        } else if (nonZeroAddresses.length === 3) {
+          // Status: Evaluated
+          statusMessage += "Evaluated";
+          isReadyToMint = true;
+        }
+
+
+
+
+        if (i >= 0 && i < totalSupply) {
+          // The index is valid, proceed to fetch the token ID
+          const tokenId = await contract.methods.tokenByIndex(i).call();
+          console.log(`Token ID at index ${i} is ${tokenId}`);
+          try {
+            // Check if the owner of the tokenId is a non-zero address
+            const owner = await contract.methods.ownerOf(tokenId).call();
+
+            if (owner !== "0x0000000000000000000000000000000000000000") {
+              // The NFT with tokenId exists
+              console.log(`Token with tokenId ${tokenId} exists.`);
+                      // Populate the card with Dataset data
+              statusMessage += ", NFT Minted";
+              card.innerHTML = `
+                <em><b>Dataset Id: </b>${i}</em> 
+                <em><b>Uploader: </b>${dataset.uploader}</em>
+                <span style="display: inline;"><em><b>${statusMessage}</b></em><img src="{{ url_for('static', filename='NFT_icon.svg') }}" width="60"/></span>
+                ${evaluationInfo}${evaluationInfo1}${evaluationInfo2}${evaluationInfo3}
+              `;
+            } else {
+              // The NFT with tokenId does not exist
+              console.log(`Token with tokenId ${tokenId} does not exist.`);
+                      // Populate the card with Dataset data
+              card.innerHTML = `
+                <em><b>Dataset Id: </b>${i}</em>
+                <em><b>Uploader: </b>${dataset.uploader}</em>
+                <em><b id="status_message">${statusMessage}</b></em>
+                ${evaluationInfo}${evaluationInfo1}${evaluationInfo2}${evaluationInfo3}
+              `;
+            }
+          } catch (error) {
+            console.error("Error checking NFT existence:", error);
+          }
+
+        } else {
+          // Handle the case where the index is out of bounds
+          console.log("Index is out of bounds.");
+          card.innerHTML = `
+            <em><b>Dataset Id: </b>${i}</em>
+            <em><b>Uploader: </b>${dataset.uploader}</em>
+            <em><b id="status_message">${statusMessage}</b></em>
+            ${evaluationInfo}${evaluationInfo1}${evaluationInfo2}${evaluationInfo3}
+          `;
+        }
+
+       
+
+       
+
+
+        // Add a button for minting NFT (if ready)
+        if (isReadyToMint) {
+          const mintButton = document.createElement("button");
+          mintButton.innerText = "Mint NFT";
+          mintButton.className = "btn btn-outline-primary btn-sm mt-2";
+          mintButton.addEventListener("click", () => mintNFTForDataset(i)); // Call your minting function
+          card.appendChild(mintButton);
+        }
+
+        // Append the card to the grid container
+        gridContainer.appendChild(card);
+
+
+        
+        console.log('Uploader:', dataset.uploader);
+        console.log('Evaluation:', dataset.evaluation);
+        console.log('Evaluators:', evaluatorAddresses.join(", "));
+        console.log('------------------------');
+      }
+
+    } catch (error) {
+      console.error("Error fetching datasets:", error);
+      // Handle the error as needed
+    }
+  }
+
+
+  async function setScore1() {
+    try {
+      // Check if the user is connected to MetaMask
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+      .catch((e) => {
+      console.error(e.message)
+      return
+      })
+      console.log(accounts[0]);
+      const evaluatorAddress=accounts[0];
+      // Get the values
+      const datasetId = parseInt(document.getElementById('dataset_id').value);
+      const newValue = parseInt(document.getElementById('score').value);
+      const attribute_id = parseInt(document.getElementById('attribute_id').value);
+      console.log(datasetId);
+      console.log(newValue);
+      console.log(attribute_id);
+      if (datasetId === null  ) {
+          messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-alert" role="alert">' + 'Please select a dataset to evaluate.'+'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+          return;
+      }
+      if (!newValue) {
+          messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-alert" role="alert">' + 'Please select a score.'+'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+          return;
+      }
+        if (!attribute_id) {
+         messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-alert" role="alert">' + 'Please select an attribute. '+'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+        return;
+      }
+
+    // Check that evaluator exists and is allowed to set score_1
+    const evaluatorId = await contract.methods.evaluatorIndexByAddress(evaluatorAddress).call();
+    const evaluator = await contract.methods.evaluators(evaluatorId).call();
+    console.log(evaluator.evaluatorAddress);
+    console.log(evaluator.attributeIndex);
+
+    if (evaluator.evaluatorAddress.toLowerCase() !== evaluatorAddress.toLowerCase() ) {
+      throw new Error("Evaluator not found!");
+    }
+    if (evaluator.attributeIndex !=='2') {
+       throw new Error("Evaluator not allowed to set score_1");
+    }
+
+    // Ensure that datasetId is within bounds
+    const datasetCount = await contract.methods.datasetCount().call();
+    if (datasetId > parseInt(datasetCount)) {
+        console.log(datasetCount);
+        throw new Error("Dataset not found");
+    }
+
+    // Check that score1 is currently blank (0) before updating it
+
+    const eval = await contract.methods.evaluations(datasetId).call();
+    if (eval.score1 !== '0') {
+        throw new Error("Score1 is already set");
+    }
+
+    // Send the transaction to update score1
+
+    const gas = await contract.methods.set_score1(evaluatorAddress, newValue, datasetId).estimateGas();
+    console.log(gas);
+    const tx = await contract.methods.set_score1(evaluatorAddress, newValue, datasetId).send({ from: accounts[0], gas });
+
+    // Transaction successful, you can handle the result as needed
+    console.log("Transaction successful:", tx);
+
+    // Emit an event or perform other actions as needed
+
+  } catch (error) {
+      console.error("Error setting Score1:", error);
+      // Handle the error as needed
+      messageContainer.innerHTML = '<div class="alert alert-danger alert-dismissible fade show transparent-danger" role="alert">' + 'Error activating evaluator: ' + error.message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+  }
+  };
+  document.getElementById('form1').addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent the default form submission
+    // Call the function to add a new dataset
+    setScore1();
+  });
+
+
+  async function activateEvaluator(evaluatorAddress) {
+    try {
+      // Ensure evaluatorAddress is in the correct format
+      if (!web3.utils.isAddress(evaluatorAddress)) {
+        throw new Error('Invalid Ethereum address format');
+      }
+      const addr=evaluatorAddress;
+      console.log("eval: "+addr);
+      // Call the contract's activateEvaluator function
+      await contract.methods.activateEvaluator(addr).send({ from: window.userWalletAddress });
+
+      // Update the table and display a success message
+      populateEvaluatorsTable();
+      messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-success" role="alert">' + 'Evaluator ' + addr + ' activated successfully!' + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+    } catch (error) {
+      // Handle errors, display an error message
+      messageContainer.innerHTML = '<div class="alert alert-danger alert-dismissible fade show transparent-danger" role="alert">' + 'Error activating evaluator: ' + error.message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+    }
+  }
+
+  // Function to deactivate an evaluator
+  async function deactivateEvaluator(evaluatorAddress) {
+    let transaction;
+    try {
+      // Call the contract's deactivateEvaluator function
+      const transaction = await contract.methods.deactivateEvaluator(evaluatorAddress).send({ from: window.userWalletAddress });
+      // Wait for the transaction receipt using a Promise
+      await new Promise((resolve, reject) => {
+        const interval = setInterval(async () => {
+            try {
+                const receipt = await web3.eth.getTransactionReceipt(transaction.transactionHash);
+                if (receipt) {
+                    clearInterval(interval); // Stop polling
+                    resolve(receipt);
+                    console.log(receipt);
+                    
+                    if (receipt && receipt.status === true) {
+                      // Transaction was successful and has a receipt
+
+                      // Use the contract instance to get past events
+                      contract.getPastEvents('EvaluatorDeactivated', {
+                        fromBlock: receipt.blockNumber, // Start block (optional)
+                        toBlock: receipt.blockNumber,   // End block (optional)
+                        filter: {},                     // Event filter (optional)
+                      })
+                      .then(function(events)  {
+                        // `events` will contain an array of event objects
+                        events.forEach(function(event) {
+                          console.log('Address:', evaluatorAddress);
+                          const datasetId = event.returnValues.evaluatorAddress;
+                          });
+                      })
+                      .catch(error => {
+                        console.error('Error getting events:', error);
+                      });
+                    } else {
+                      console.error('Transaction failed or receipt not found.');
+                    }
+
+                    
+                }
+            } catch (error) {
+                clearInterval(interval); // Stop polling
+                reject(error);
+            }
+        }, 1000); // Poll every 1 second
+      });
+      messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-success" role="alert">' + 'Evaluator '+evaluatorAddress+' deactivated successfully!' + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+      populateEvaluatorsTable(); // Refresh the table in chairman mode
+    } catch (error) {
+      console.error('Error deactivating evaluator:', error);
+      messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-danger" role="alert">' + 'Error deactivating evaluator: ' + error.message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+    }
+  }
+
+  async function mintNFTForDataset(datasetId) {
+    try {
+      const datasetCount = await contract.methods.datasetCount().call();
+      // Ensure that the dataset ID is within a valid range
+      if (datasetId < 0 || datasetId >= datasetCount) {
+        console.error("Invalid dataset ID.");
+        return;
+      }
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
+        .catch((e) => {
+        console.error(e.message)
+        return
+        })
+
+      const dataset = await contract.methods.datasets(datasetId).call();
+      const uploader = dataset.uploader;
+      const evaluatorAddresses = await contract.methods.getEvaluatorAddresses(datasetId).call();
+      console.log(window.userWalletAddress,uploader);
+      // Ensure that the caller is the uploader of the dataset
+      if (uploader.toLowerCase() !== window.userWalletAddress.toLowerCase()) {
+        console.log("Only the uploader can mint the NFT.");
+        messageContainer.innerHTML = '<div class="alert alert-danger alert-dismissible fade show transparent-danger" role="alert">' + 'Only the uploader can mint the NFT.'+'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+
+        return;
+      }
+
+      // Ensure that the dataset has exactly 3 evaluators
+      if (evaluatorAddresses.length !== 3) {
+        console.error("Dataset must have 3 evaluators to mint an NFT.");
+        return;
+      }
+      const gas = await contract.methods.mintNFTForDataset(datasetId,window.userWalletAddress).estimateGas();
+      // Call the mintNFT function and await the transaction
+      
+      const mintingTx = await contract.methods.mintNFTForDataset(datasetId,window.userWalletAddress).send({ from: window.userWalletAddress,gas:gas});
+      await new Promise((resolve, reject) => {
+        const interval = setInterval(async () => {
+            try {
+                const receipt = await web3.eth.getTransactionReceipt(mintingTx.transactionHash);
+                if (receipt) {
+                    clearInterval(interval); // Stop polling
+                    resolve(receipt);
+                    console.log(receipt);
+                    if (receipt && receipt.status === true) {
+                      // Transaction was successful and has a receipt
+
+                      // Use the contract instance to get past events
+                      contract.getPastEvents('nft_minted', {
+                        fromBlock: receipt.blockNumber, // Start block (optional)
+                        toBlock: receipt.blockNumber,   // End block (optional)
+                        filter: {},                     // Event filter (optional)
+                      })
+                      .then(function(events)  {
+                        // `events` will contain an array of event objects
+                        events.forEach(function(event) {
+                          console.log('Address:', minter);
+                          const datasetId = event.returnValues.datasetId;
+                          });
+                      })
+                      .catch(error => {
+                        console.error('Error getting events:', error);
+                      });
+                    } else {
+                      console.error('Transaction failed or receipt not found.');
+                    }
+
+                    
+                }
+            } catch (error) {
+                clearInterval(interval); // Stop polling
+                reject(error);
+            }
+        }, 1000); // Poll every 1 second
+      });
+      // Transaction receipt contains information about the transaction
+      const { transactionHash, status } = mintingTx;
+      if (status === true) {
+        // Status "0x1" indicates success
+        console.log("NFT minting transaction successful. Transaction hash:", transactionHash);
+        messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-success" role="alert">' + 'NFT minted for dataset ID:'+ datasetId+ '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+      } else {
+        console.error("NFT minting transaction failed. Transaction hash:", transactionHash);
+        messageContainer.innerHTML = '<div class="alert alert-danger alert-dismissible fade show transparent-danger" role="alert">' + 'NFT minting transaction failed. Check the transaction status in your Ethereum client.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+      }
+    } catch (error) {
+      console.error("Error minting NFT:", error);
+      messageContainer.innerHTML = '<div class="alert alert-success alert-dismissible fade show transparent-danger" role="alert">' + 'Error Minting NFT: ' + error.message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button></div>';
+
+      // Handle the error as needed
+    }
+  }
+
+
+</script>
+
+
+{% endblock %}

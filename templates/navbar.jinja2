@@ -1,0 +1,36 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <div class="text-center">
+        <img src="{{ url_for('static', filename='logo-carre-blanc.png') }}" width="60"  alt="logo"/>
+      </div>
+        <a class="navbar-brand" href="{{ url_for('home') }}">XP_Dataset_NFT</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">    
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('home')}}">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin')}}">Admin</a>
+              </li>
+          </ul>
+          {% if url_for(request.endpoint) =='/' %}
+          <div class="d-flex "></div>
+            <li>
+              <span id="walletAddress" class="me-2" style="color:white" ></span>
+              <span id="role" class="me-2" style="color:white"></span>
+              <span id="walletBalance" class="me-2" style="color:white"></span><span class="me-2"><iconify-icon icon="fa-brands:ethereum" style="color: white;"></iconify-icon></span>
+              <a href="#"><i class="me-2" aria-hidden="true"></i></a>
+              <button id='connectWallet' class="btn btn-outline-secondary btn-sm me-2" onclick="">Connect</button>
+            </li>
+          </div>
+          {% endif %}
+        </div>
+    </div>
+            
+
+          
+ 
+  </nav>
