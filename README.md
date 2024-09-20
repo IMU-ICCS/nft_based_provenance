@@ -1,8 +1,15 @@
 # NFT Provenance Demo App
 
 A decentralized application for creating and managing dataset NFTs.
+![Demo App](static/NFT_Provenance_App_arch.drawio.png)
 
 ## Overview
+Here are some screenshots of the application:
+![Screenshot 1](static/Screenshot1.png)
+![Screenshot 2](static/Screenshot2.png)
+![Screenshot 3](static/Screenshot3.png)
+Watch the demo of the NFT Provenance app:
+![NFT POC Video](static/nft_poc_video.mp4)
 
 ### Features
 
