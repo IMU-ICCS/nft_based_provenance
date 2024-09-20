@@ -1,6 +1,6 @@
-# NFT App
+# NFT Provenance Demo App
 
-A decentralized application for creating and managing NFTs.
+A decentralized application for creating and managing dataset NFTs.
 
 ## Overview
 
@@ -25,19 +25,19 @@ A decentralized application for creating and managing NFTs.
    git clone https://github.com/IMU-ICCS/nft_based_provenance.git
    cd nft_based_provenance
 
-Install the dependencies:
- ``` bash
-pip install .\requirements.txt           
- ```bash
-npm install
-Start your local blockchain (if using Ganache) and ensure you have some test Ether.
+2. **Install the dependencies: **
+    ```bash
+   pip install .\requirements.txt           
+    ```bash
+   npm install
+   Start your local blockchain (if using Ganache) and ensure you have some test Ether.
 
-Set up the environment:
+3. **Set up the environment: **
 
-Create a .env file in the root directory and add your configuration settings.
-
-Run the application:
-
- ```bash
-
-npm start
+   Create a .env file in the root directory and add your configuration settings.
+   
+   Run the application:
+   
+    ```bash
+   
+   npm start
